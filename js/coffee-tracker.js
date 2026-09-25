@@ -325,12 +325,29 @@
     ]
   };
 
+  // Resilient Storage Layer (Prevents any crash if third-party storage or incognito restricts localStorage)
+  const memoryFallback = {};
+  function safeGet(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      return memoryFallback[key] || null;
+    }
+  }
+  function safeSet(key, val) {
+    try {
+      localStorage.setItem(key, val);
+    } catch (e) {
+      memoryFallback[key] = val;
+    }
+  }
+
   // State Management
   let DB = loadDatabase();
 
   function loadDatabase() {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = safeGet(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         // Ensure all required collections exist
@@ -348,9 +365,9 @@
   function saveDatabase(dataToSave) {
     if (dataToSave) DB = dataToSave;
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+      safeSet(STORAGE_KEY, JSON.stringify(DB));
     } catch (e) {
-      console.error('Failed to persist to localStorage', e);
+      console.error('Failed to persist to storage', e);
     }
   }
 
@@ -1865,98 +1882,102 @@
   // INITIALIZATION & EVENT LISTENERS
   // ==============================================================================
   function initApp() {
-    // Attach form submit handlers
-    const formGreenPurchase = document.getElementById('form-green-purchase');
-    if (formGreenPurchase) formGreenPurchase.addEventListener('submit', submitGreenPurchase);
+    try {
+      // Attach form submit handlers
+      const formGreenPurchase = document.getElementById('form-green-purchase');
+      if (formGreenPurchase) formGreenPurchase.addEventListener('submit', submitGreenPurchase);
 
-    const formIssueRoastery = document.getElementById('form-issue-roastery');
-    if (formIssueRoastery) formIssueRoastery.addEventListener('submit', submitIssueToRoastery);
+      const formIssueRoastery = document.getElementById('form-issue-roastery');
+      if (formIssueRoastery) formIssueRoastery.addEventListener('submit', submitIssueToRoastery);
 
-    const formRoastBatch = document.getElementById('form-roast-batch');
-    if (formRoastBatch) formRoastBatch.addEventListener('submit', submitRoastBatch);
+      const formRoastBatch = document.getElementById('form-roast-batch');
+      if (formRoastBatch) formRoastBatch.addEventListener('submit', submitRoastBatch);
 
-    const formPackingIssue = document.getElementById('form-packing-issue');
-    if (formPackingIssue) formPackingIssue.addEventListener('submit', submitPackingIssue);
+      const formPackingIssue = document.getElementById('form-packing-issue');
+      if (formPackingIssue) formPackingIssue.addEventListener('submit', submitPackingIssue);
 
-    const formRetailPurchase = document.getElementById('form-retail-purchase');
-    if (formRetailPurchase) formRetailPurchase.addEventListener('submit', submitRetailPurchase);
+      const formRetailPurchase = document.getElementById('form-retail-purchase');
+      if (formRetailPurchase) formRetailPurchase.addEventListener('submit', submitRetailPurchase);
 
-    const formRetailIssue = document.getElementById('form-retail-issue');
-    if (formRetailIssue) formRetailIssue.addEventListener('submit', submitRetailIssue);
+      const formRetailIssue = document.getElementById('form-retail-issue');
+      if (formRetailIssue) formRetailIssue.addEventListener('submit', submitRetailIssue);
 
-    const formNewDept = document.getElementById('form-new-dept');
-    if (formNewDept) formNewDept.addEventListener('submit', submitNewDepartment);
+      const formNewDept = document.getElementById('form-new-dept');
+      if (formNewDept) formNewDept.addEventListener('submit', submitNewDepartment);
 
-    const formNewOutlet = document.getElementById('form-new-outlet');
-    if (formNewOutlet) formNewOutlet.addEventListener('submit', submitNewOutlet);
+      const formNewOutlet = document.getElementById('form-new-outlet');
+      if (formNewOutlet) formNewOutlet.addEventListener('submit', submitNewOutlet);
 
-    const formItemMaster = document.getElementById('form-item-master');
-    if (formItemMaster) formItemMaster.addEventListener('submit', submitItemMaster);
+      const formItemMaster = document.getElementById('form-item-master');
+      if (formItemMaster) formItemMaster.addEventListener('submit', submitItemMaster);
 
-    // Live calculation in Roast Batch Modal (Loss kg and %)
-    const greenInInput = document.getElementById('rb-green-in');
-    const roastedOutInput = document.getElementById('rb-roasted-out');
-    function updateRoastPreview() {
-      const gIn = parseFloat(greenInInput.value) || 0;
-      const rOut = parseFloat(roastedOutInput.value) || 0;
-      const previewEl = document.getElementById('roast-calc-preview');
-      if (!previewEl) return;
+      // Live calculation in Roast Batch Modal (Loss kg and %)
+      const greenInInput = document.getElementById('rb-green-in');
+      const roastedOutInput = document.getElementById('rb-roasted-out');
+      function updateRoastPreview() {
+        const gIn = parseFloat(greenInInput.value) || 0;
+        const rOut = parseFloat(roastedOutInput.value) || 0;
+        const previewEl = document.getElementById('roast-calc-preview');
+        if (!previewEl) return;
 
-      if (gIn > 0 && rOut > 0 && rOut < gIn) {
-        const lossKg = gIn - rOut;
-        const lossPct = (lossKg / gIn) * 100;
-        previewEl.innerHTML = `Loss: <strong>${formatNumber(lossKg, 1)} kg</strong> (${formatNumber(lossPct, 1)}%)`;
-        previewEl.style.color = lossPct > 18 ? 'var(--danger-crimson)' : 'var(--amber-bright)';
-      } else {
-        previewEl.innerHTML = `Loss: <strong>0.0 kg</strong> (0.0%)`;
-        previewEl.style.color = 'var(--text-muted)';
-      }
-    }
-    if (greenInInput && roastedOutInput) {
-      greenInInput.addEventListener('input', updateRoastPreview);
-      roastedOutInput.addEventListener('input', updateRoastPreview);
-    }
-
-    // Search inputs
-    const greenSearch = document.getElementById('green-search-input');
-    if (greenSearch) greenSearch.addEventListener('input', renderGreenCoffee);
-
-    const roastSearch = document.getElementById('roastery-search-input');
-    if (roastSearch) roastSearch.addEventListener('input', renderRoastery);
-
-    const packSearch = document.getElementById('packing-search-input');
-    if (packSearch) packSearch.addEventListener('input', renderPacking);
-
-    const retailSearch = document.getElementById('retail-search-input');
-    if (retailSearch) retailSearch.addEventListener('input', renderRetail);
-
-    const itemSearch = document.getElementById('item-master-search-input');
-    if (itemSearch) itemSearch.addEventListener('input', renderItemMaster);
-
-    const catFilter = document.getElementById('item-master-category-filter');
-    if (catFilter) catFilter.addEventListener('change', renderItemMaster);
-
-    // Mobile sidebar toggle
-    const mobileBtn = document.querySelector('.mobile-menu-toggle');
-    if (mobileBtn) {
-      mobileBtn.addEventListener('click', () => {
-        const sidebar = document.querySelector('.sidebar');
-        if (sidebar) sidebar.classList.toggle('mobile-open');
-      });
-    }
-
-    // Modal background click to close
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          overlay.classList.remove('open');
+        if (gIn > 0 && rOut > 0 && rOut < gIn) {
+          const lossKg = gIn - rOut;
+          const lossPct = (lossKg / gIn) * 100;
+          previewEl.innerHTML = `Loss: <strong>${formatNumber(lossKg, 1)} kg</strong> (${formatNumber(lossPct, 1)}%)`;
+          previewEl.style.color = lossPct > 18 ? 'var(--danger-crimson)' : 'var(--amber-bright)';
+        } else {
+          previewEl.innerHTML = `Loss: <strong>0.0 kg</strong> (0.0%)`;
+          previewEl.style.color = 'var(--text-muted)';
         }
-      });
-    });
+      }
+      if (greenInInput && roastedOutInput) {
+        greenInInput.addEventListener('input', updateRoastPreview);
+        roastedOutInput.addEventListener('input', updateRoastPreview);
+      }
 
-    // Initial render
-    refreshAllViews();
-    switchTab('dashboard');
+      // Search inputs
+      const greenSearch = document.getElementById('green-search-input');
+      if (greenSearch) greenSearch.addEventListener('input', renderGreenCoffee);
+
+      const roastSearch = document.getElementById('roastery-search-input');
+      if (roastSearch) roastSearch.addEventListener('input', renderRoastery);
+
+      const packSearch = document.getElementById('packing-search-input');
+      if (packSearch) packSearch.addEventListener('input', renderPacking);
+
+      const retailSearch = document.getElementById('retail-search-input');
+      if (retailSearch) retailSearch.addEventListener('input', renderRetail);
+
+      const itemSearch = document.getElementById('item-master-search-input');
+      if (itemSearch) itemSearch.addEventListener('input', renderItemMaster);
+
+      const catFilter = document.getElementById('item-master-category-filter');
+      if (catFilter) catFilter.addEventListener('change', renderItemMaster);
+
+      // Mobile sidebar toggle
+      const mobileBtn = document.querySelector('.mobile-menu-toggle');
+      if (mobileBtn) {
+        mobileBtn.addEventListener('click', () => {
+          const sidebar = document.querySelector('.sidebar');
+          if (sidebar) sidebar.classList.toggle('mobile-open');
+        });
+      }
+
+      // Modal background click to close
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            overlay.classList.remove('open');
+          }
+        });
+      });
+
+      // Initial render
+      refreshAllViews();
+      switchTab('dashboard');
+    } catch (err) {
+      console.error('CoffeeApp initialization error:', err);
+    }
   }
 
   // ==============================================================================
