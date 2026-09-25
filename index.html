@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Coffee &amp; Retails Inventory Tracker | Specialty Roastery OS</title>
+  <meta name="description" content="End-to-end Specialty Coffee &amp; Retail Inventory Management OS. Track Green Coffee, Roastery output &amp; loss %, Packing Department issues, Website Sales, Outlets, B2B, Wastage, Grinder Loss, Lab Testing, Retail &amp; Item Master.">
+
+  <!-- Typography: Outfit, Inter, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/coffee-tracker.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    
+    <!-- ====================================================================
+         VERTICAL SIDEBAR NAVIGATION
+         ==================================================================== -->
+    <aside class="sidebar">
+      
+      <!-- Brand Header -->
+      <div class="sidebar-header">
+        <div class="brand-badge">☕</div>
+        <div class="brand-info">
+          <div class="brand-name">Coffee &amp; Retails</div>
+          <div class="brand-sub">Inventory Tracker</div>
+        </div>
+      </div>
+
+      <!-- Main Navigation Menu -->
+      <nav class="sidebar-nav">
+        
+        <!-- Section: Overview -->
+        <div class="nav-section-title">Executive Suite</div>
+        <button class="nav-btn active" id="nav-dashboard" onclick="window.CoffeeApp.switchTab('dashboard')">
+          <span class="nav-icon">📊</span>
+          <span>Smart Dashboard</span>
+        </button>
+
+        <!-- Section: Coffee Pipeline -->
+        <div class="nav-section-title" style="margin-top:0.6rem;">Coffee Production</div>
+        <div id="nav-coffee-group">
+          <!-- Green Coffee -->
+          <button class="nav-btn" id="nav-green" onclick="window.CoffeeApp.switchTab('green')">
+            <span class="nav-icon">🌿</span>
+            <span>Green Coffee</span>
+            <span class="nav-badge" id="sidebar-badge-green">Stock</span>
+          </button>
+          
+          <div class="nav-subgroup">
+            <button class="nav-sub-btn" id="nav-roastery" onclick="window.CoffeeApp.switchTab('roastery')">
+              <span>🔥</span>
+              <span>Roastery Unit</span>
+            </button>
+            <button class="nav-sub-btn" id="nav-packing" onclick="window.CoffeeApp.switchTab('packing')">
+              <span>📦</span>
+              <span>Packing Dept</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Retail & Merchandise -->
+        <div class="nav-section-title" style="margin-top:0.6rem;">Retail &amp; Goods</div>
+        <button class="nav-btn" id="nav-retail" onclick="window.CoffeeApp.switchTab('retail')">
+          <span class="nav-icon">🛍️</span>
+          <span>Retail &amp; Materials</span>
+          <span class="nav-badge">Merch</span>
+        </button>
+
+        <!-- Section: Master Data & Network -->
+        <div class="nav-section-title" style="margin-top:0.6rem;">System Registries</div>
+        <button class="nav-btn" id="nav-itemmaster" onclick="window.CoffeeApp.switchTab('itemmaster')">
+          <span class="nav-icon">🏷️</span>
+          <span>Item Master</span>
+        </button>
+        <button class="nav-btn" id="nav-departments" onclick="window.CoffeeApp.switchTab('departments')">
+          <span class="nav-icon">🏪</span>
+          <span>Outlets &amp; Depts</span>
+          <span class="nav-badge" style="background:rgba(212,163,115,0.2);color:var(--crema-primary);">+Cafes</span>
+        </button>
+        <button class="nav-btn" id="nav-ledger" onclick="window.CoffeeApp.switchTab('ledger')">
+          <span class="nav-icon">📜</span>
+          <span>Audit Ledger</span>
+        </button>
+        <button class="nav-btn" id="nav-impexp" onclick="window.CoffeeApp.switchTab('impexp')">
+          <span class="nav-icon">🔄</span>
+          <span>Import / Export</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="system-status-box">
+          <div><span class="status-dot"></span> System Live</div>
+          <button style="background:none;border:none;color:var(--crema-primary);cursor:pointer;font-size:0.75rem;" onclick="window.CoffeeApp.resetToDemoData()">Reset Demo</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====================================================================
+         MAIN APP CONTAINER & TOPBAR
+         ==================================================================== -->
+    <main class="main-wrapper">
+      
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-toggle" aria-label="Toggle Navigation">&#9776;</button>
+          <div class="page-breadcrumb">
+            <span>Operations</span> / 
+            <span class="current-page" id="topbar-page-title">Smart Dashboard</span>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <button class="topbar-btn" onclick="window.CoffeeApp.openAddItemModal()">
+            <span>+</span> <span>New SKU Item</span>
+          </button>
+          <button class="topbar-btn" onclick="window.CoffeeApp.openNewRoastModal()">
+            <span>🔥</span> <span>Log Roast Batch</span>
+          </button>
+          <button class="topbar-btn primary" onclick="window.CoffeeApp.openModal('modal-packing-issue')">
+            <span>📤</span> <span>Issue Coffee / Retail</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Views Content Area -->
+      <div class="content-body">
+        
+        <!-- ================================================================
+             TAB 1: SMART DASHBOARD (FIRST PAGE)
+             ================================================================ -->
+        <div class="tab-pane active" id="tab-dashboard">
+          
+          <!-- Interactive Visual Pipeline Flow Diagram -->
+          <div class="flow-pipeline-container">
+            <div class="flow-pipeline-header">
+              <div class="flow-title">
+                <span>🔄</span>
+                <span>Specialty Coffee Inventory Flow Architecture</span>
+              </div>
+              <div class="flow-formula-tag">
+                [Opening + Inflows] - [Outflows/Issues] = Closing Balance &bull; Physical Count &bull; Variance
+              </div>
+            </div>
+
+            <!-- Flow Stages -->
+            <div class="flow-stages-grid">
+              
+              <!-- 1. Green Coffee Store -->
+              <div class="flow-stage-card green-stage" onclick="window.CoffeeApp.switchTab('green')">
+                <div class="flow-card-head">
+                  <span class="stage-badge green">Stage 1: Ingestion</span>
+                  <span style="font-size:1.1rem;">🌿</span>
+                </div>
+                <div class="stage-title">Green Coffee Store</div>
+                <div class="stage-equation">Opening + Purchases - Roastery Issues</div>
+                <div class="stage-metrics">
+                  <div>
+                    <div class="stage-val-main" id="flow-green-qty">-- kg</div>
+                    <div class="stage-val-sub">Unroasted Green Stock</div>
+                  </div>
+                  <span style="font-size:0.8rem;color:var(--green-coffee);">View Store &rarr;</span>
+                </div>
+              </div>
+
+              <!-- Connector 1 -->
+              <div class="flow-connector">
+                <span>➔</span>
+                <span class="flow-connector-label">Issue Beans</span>
+              </div>
+
+              <!-- 2. Roastery Unit -->
+              <div class="flow-stage-card roast-stage" onclick="window.CoffeeApp.switchTab('roastery')">
+                <div class="flow-card-head">
+                  <span class="stage-badge amber">Stage 2: Roasting</span>
+                  <span style="font-size:1.1rem;">🔥</span>
+                </div>
+                <div class="stage-title">Roastery Unit</div>
+                <div class="stage-equation">Green In &bull; Roasted Out &bull; Loss %</div>
+                <div class="stage-metrics">
+                  <div>
+                    <div class="stage-val-main" id="flow-roast-out-qty">-- kg</div>
+                    <div class="stage-val-sub" id="flow-roast-loss-label">--% Avg Loss</div>
+                  </div>
+                  <span style="font-size:0.8rem;color:var(--amber-bright);">Roast Log &rarr;</span>
+                </div>
+              </div>
+
+              <!-- Connector 2 -->
+              <div class="flow-connector">
+                <span>➔</span>
+                <span class="flow-connector-label">Handoff</span>
+              </div>
+
+              <!-- 3. Packing Department -->
+              <div class="flow-stage-card pack-stage" onclick="window.CoffeeApp.switchTab('packing')">
+                <div class="flow-card-head">
+                  <span class="stage-badge crema">Stage 3: Fulfillment</span>
+                  <span style="font-size:1.1rem;">📦</span>
+                </div>
+                <div class="stage-title">Packing Department</div>
+                <div class="stage-equation">Bulk Roasted &bull; Retail Pouches &bull; 1kg Bags</div>
+                <div class="stage-metrics">
+                  <div>
+                    <div class="stage-val-main" id="flow-pack-qty">-- kg</div>
+                    <div class="stage-val-sub">Ready For Issue</div>
+                  </div>
+                  <span style="font-size:0.8rem;color:var(--crema-primary);">Manage &rarr;</span>
+                </div>
+              </div>
+
+              <!-- Connector 3 -->
+              <div class="flow-connector">
+                <span>➔</span>
+                <span class="flow-connector-label">Distribute</span>
+              </div>
+
+              <!-- 4. Multi-Department & Party Outflows -->
+              <div class="flow-stage-card dept-stage" onclick="window.CoffeeApp.switchTab('departments')">
+                <div class="flow-card-head">
+                  <span class="stage-badge blue">Stage 4: Channels &amp; Loss</span>
+                  <span style="font-size:1.1rem;">🏢</span>
+                </div>
+                <div class="stage-title">Destinations &amp; Parties</div>
+                <div class="stage-equation">Outlets, Web, B2B, Waste, Grinder, Lab</div>
+                <div class="flow-destinations-chips">
+                  <span class="chip-mini">Indiranagar Cafe</span>
+                  <span class="chip-mini">Bandra Outlet</span>
+                  <span class="chip-mini">Connaught Place</span>
+                  <span class="chip-mini">Website Sales (D2C)</span>
+                  <span class="chip-mini">B2B Wholesale</span>
+                  <span class="chip-mini" style="color:var(--danger-crimson);">Wastage</span>
+                  <span class="chip-mini" style="color:var(--amber-gold);">Grinder Loss</span>
+                  <span class="chip-mini" style="color:var(--purple-lab);">Lab Testing</span>
+                  <span class="chip-mini" style="border-style:dashed;">+ Future Depts</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards Row -->
+          <div class="kpi-grid">
+            
+            <!-- Green Coffee Stock -->
+            <div class="kpi-card" style="border-left: 3px solid var(--green-coffee);">
+              <div class="kpi-top">
+                <div class="kpi-icon-box green">🌿</div>
+                <span class="kpi-trend positive">&uarr; Stable Supply</span>
+              </div>
+              <div>
+                <div class="kpi-label">Green Coffee On Hand</div>
+                <div class="kpi-value" id="dash-green-kg">0.0 kg</div>
+                <div class="kpi-subtext" id="dash-green-val">Asset: ₹0.00</div>
+              </div>
+            </div>
+
+            <!-- Roastery Monthly Output -->
+            <div class="kpi-card" style="border-left: 3px solid var(--amber-gold);">
+              <div class="kpi-top">
+                <div class="kpi-icon-box amber">🔥</div>
+                <span class="kpi-trend positive">&check; Roast Active</span>
+              </div>
+              <div>
+                <div class="kpi-label">Roastery Output (Month)</div>
+                <div class="kpi-value" id="dash-roast-out">0.0 kg</div>
+                <div class="kpi-subtext">Avg SKU Loss: <strong id="dash-roast-loss" style="color:var(--amber-bright);">0.0%</strong></div>
+              </div>
+            </div>
+
+            <!-- Packing Department Stock -->
+            <div class="kpi-card" style="border-left: 3px solid var(--crema-primary);">
+              <div class="kpi-top">
+                <div class="kpi-icon-box crema">📦</div>
+                <span class="kpi-trend neutral">&bull; Ready to Ship</span>
+              </div>
+              <div>
+                <div class="kpi-label">Packing Dept Stock</div>
+                <div class="kpi-value" id="dash-pack-stock">0 kg / 0 u</div>
+                <div class="kpi-subtext">Bulk Roasted + Retail Packs</div>
+              </div>
+            </div>
+
+            <!-- Retail & Packaging Stock -->
+            <div class="kpi-card" style="border-left: 3px solid var(--blue-info);">
+              <div class="kpi-top">
+                <div class="kpi-icon-box blue">🛍️</div>
+                <span class="kpi-trend neutral">Pouches &amp; Merch</span>
+              </div>
+              <div>
+                <div class="kpi-label">Retail &amp; Mat. Valuation</div>
+                <div class="kpi-value" id="dash-retail-val">₹0.00</div>
+                <div class="kpi-subtext">Pouches, Drippers, RTD Bottled</div>
+              </div>
+            </div>
+
+            <!-- Discrepancy / Variance Alerts -->
+            <div class="kpi-card" style="border-left: 3px solid var(--danger-crimson);">
+              <div class="kpi-top">
+                <div class="kpi-icon-box crimson">⚖️</div>
+                <span class="kpi-trend negative">Audits Pending</span>
+              </div>
+              <div>
+                <div class="kpi-label">Stock Variance Flags</div>
+                <div class="kpi-value" id="dash-variance-alerts">0</div>
+                <div class="kpi-subtext">Physical vs System mismatches</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Department Issues Summary & Consumption Breakdown Card -->
+          <div class="dept-summary-card">
+            <div class="dept-summary-header">
+              <div>
+                <h3 style="font-family:var(--font-heading);font-size:1.15rem;color:var(--crema-light);">
+                  📊 Department Issues Summary Breakdown
+                </h3>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.2rem;">
+                  Consolidated distribution across Outlets, Website Sales, B2B Accounts, Wastage, Grinder Loss &amp; Lab Testing
+                </p>
+              </div>
+              <div style="display:flex;gap:0.5rem;">
+                <button class="topbar-btn" onclick="window.CoffeeApp.openModal('modal-new-department')">
+                  <span>+</span> <span>Add Future Dept</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportPackingCSV()">
+                  <span>📥</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Breakdown Grid Pills -->
+            <div class="dept-breakdown-grid" id="dept-breakdown-grid">
+              <!-- Rendered by JS -->
+            </div>
+
+            <!-- Multi-colored Proportional Distribution Bar -->
+            <div class="distribution-bar-wrapper">
+              <div class="distribution-bar" id="dept-distribution-bar"></div>
+              <div class="dist-legend">
+                <div class="legend-item"><span class="legend-dot" style="background:#3a86ff;"></span> Outlets</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#8338ec;"></span> Website Sales</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ff006e;"></span> B2B Wholesale</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#e63946;"></span> Wastage</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#fb5607;"></span> Grinder Loss</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#ffbe0b;"></span> Lab Testing</div>
+                <div class="legend-item"><span class="legend-dot" style="background:#06d6a0;"></span> Custom Depts</div>
+              </div>
+            </div>
+
+            <!-- Summary Table of Issues -->
+            <div class="data-table-responsive" style="margin-top:1.25rem;">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Department / Destination Name</th>
+                    <th>Channel Type</th>
+                    <th>Code</th>
+                    <th class="col-number">Total Coffee Issued (kg)</th>
+                    <th class="col-number">Packaged Units</th>
+                    <th class="col-number">Share of Dispatches</th>
+                  </tr>
+                </thead>
+                <tbody id="dept-summary-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bottom Grid: Recent Activity & Quick Shortcuts -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+            
+            <!-- Recent Transactions Activity -->
+            <div class="table-container-card" style="padding:1.25rem;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.85rem;">
+                <h4 style="font-family:var(--font-heading);font-size:1.05rem;color:var(--crema-light);">Recent Movement Log</h4>
+                <button class="topbar-btn" style="padding:0.25rem 0.5rem;font-size:0.75rem;" onclick="window.CoffeeApp.switchTab('ledger')">View All Ledger</button>
+              </div>
+              <div id="dash-recent-activity">
+                <!-- Rendered by JS -->
+              </div>
+            </div>
+
+            <!-- Quick Action Palette -->
+            <div class="table-container-card" style="padding:1.25rem;display:flex;flex-direction:column;justify-content:space-between;">
+              <div>
+                <h4 style="font-family:var(--font-heading);font-size:1.05rem;color:var(--crema-light);margin-bottom:0.4rem;">Fast Transaction Palette</h4>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1.1rem;">Execute everyday specialty roastery operations with one click.</p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;" onclick="window.CoffeeApp.openGreenPurchaseModal()">
+                    <span style="font-size:1.2rem;">📥</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--text-primary);">Receive Green Beans</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Purchase Inflow</div>
+                    </div>
+                  </button>
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;" onclick="window.CoffeeApp.openIssueToRoasteryModal()">
+                    <span style="font-size:1.2rem;">🌿</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--text-primary);">Issue to Roastery</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Transfer to Machine</div>
+                    </div>
+                  </button>
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;" onclick="window.CoffeeApp.openNewRoastModal()">
+                    <span style="font-size:1.2rem;">🔥</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--text-primary);">Finish Roast Batch</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Calculate Loss %</div>
+                    </div>
+                  </button>
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;" onclick="window.CoffeeApp.openModal('modal-packing-issue')">
+                    <span style="font-size:1.2rem;">📤</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--text-primary);">Issue Coffee to Dept</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Outlets, Web, B2B, Lab</div>
+                    </div>
+                  </button>
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;background:rgba(212,163,115,0.12);border-color:rgba(212,163,115,0.3);" onclick="window.CoffeeApp.openModal('modal-new-outlet')">
+                    <span style="font-size:1.2rem;">🏪</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--crema-light);">+ Add Cafe Outlet</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Expand Store Network</div>
+                    </div>
+                  </button>
+                  <button class="topbar-btn" style="padding:0.75rem;justify-content:flex-start;" onclick="window.CoffeeApp.openAddItemModal()">
+                    <span style="font-size:1.2rem;">🏷️</span>
+                    <div style="text-align:left;">
+                      <div style="font-weight:600;color:var(--text-primary);">+ Add Master SKU</div>
+                      <div style="font-size:0.7rem;color:var(--text-muted);">Catalog &amp; Target Loss</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Database Backup Box -->
+              <div style="margin-top:1.25rem;background:rgba(212,163,115,0.08);border:1px solid rgba(212,163,115,0.2);padding:0.85rem;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                  <div style="font-size:0.8rem;font-weight:600;color:var(--crema-light);">LocalStorage Data Engine</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);">All edits &amp; transactions persist instantly in browser storage.</div>
+                </div>
+                <button class="topbar-btn" style="font-size:0.78rem;padding:0.35rem 0.65rem;" onclick="window.CoffeeApp.exportDatabaseJSON()">Backup JSON</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ================================================================
+             TAB 2: GREEN COFFEE INVENTORY
+             Equation: Opening + Purchases - Issue to Roastery = Closing, Physical, Variance
+             ================================================================ -->
+        <div class="tab-pane" id="tab-green">
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">🌿</span>
+                <div>
+                  <h2 class="table-heading">Green Coffee Raw Bean Inventory</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Equation: Opening + Purchase - Issue to Roastery = Closing Balance &bull; Physical &bull; Variance
+                  </div>
+                </div>
+                <span class="table-count-badge" id="green-coffee-count-badge">0 Lots</span>
+              </div>
+
+              <div class="table-actions">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="green-search-input" class="search-input" placeholder="Search Green SKU, Lot, Origin..." />
+                </div>
+                <button class="topbar-btn" onclick="window.CoffeeApp.openGreenPurchaseModal()">
+                  <span>📥</span> <span>+ Receive Purchase</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.openIssueToRoasteryModal()">
+                  <span>🔥</span> <span>Issue to Roastery</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportGreenCoffeeCSV()">
+                  <span>📤</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Green Coffee Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Green SKU &amp; Lot #</th>
+                    <th>Coffee Name &amp; Origin</th>
+                    <th class="col-number">Opening (kg)</th>
+                    <th class="col-number">Purchases (kg)</th>
+                    <th class="col-number">Issued to Roastery (kg)</th>
+                    <th class="col-number">Closing Balance (kg)</th>
+                    <th class="col-number">Physical Count (kg)</th>
+                    <th class="col-number">Variance (kg)</th>
+                    <th class="col-number">Asset Valuation</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="green-coffee-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 3: ROASTERY UNIT (ROASTING BATCHES & SKU LOSS)
+             ================================================================ -->
+        <div class="tab-pane" id="tab-roastery">
+          
+          <!-- Roastery KPIs -->
+          <div class="kpi-grid" style="margin-bottom: 1.25rem;">
+            <div class="kpi-card">
+              <div class="kpi-label">Total Green Beans Roasted</div>
+              <div class="kpi-value" id="roast-kpi-total-in">0.0 kg</div>
+              <div class="kpi-subtext">Received from Green Store</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total Roasted Output</div>
+              <div class="kpi-value" id="roast-kpi-total-out">0.0 kg</div>
+              <div class="kpi-subtext">Transferred to Packing Dept</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Weighted Roasting Loss</div>
+              <div class="kpi-value" id="roast-kpi-avg-loss" style="color:var(--amber-bright);">0.0%</div>
+              <div class="kpi-subtext">Target standard range: 13.5% - 17.5%</div>
+            </div>
+          </div>
+
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">🔥</span>
+                <div>
+                  <h2 class="table-heading">Roastery Unit Batch Log &amp; Loss Analysis</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Roasting Loss % = ((Green In - Roasted Output) / Green In) * 100 &bull; Compared to SKU Benchmark
+                  </div>
+                </div>
+                <span class="table-count-badge" id="roastery-count-badge">0 Batches</span>
+              </div>
+
+              <div class="table-actions">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="roastery-search-input" class="search-input" placeholder="Search Batch, Green SKU, Profile..." />
+                </div>
+                <button class="topbar-btn primary" onclick="window.CoffeeApp.openNewRoastModal()">
+                  <span>🔥</span> <span>+ Record Roast Batch</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportRoasteryCSV()">
+                  <span>📤</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Roastery Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Batch ID</th>
+                    <th>Date &amp; Time</th>
+                    <th>Green SKU In</th>
+                    <th>Roasted SKU &amp; Machine</th>
+                    <th class="col-number">Green In</th>
+                    <th class="col-number">Roasted Output</th>
+                    <th class="col-number">Loss (kg)</th>
+                    <th class="col-number">Roast Loss %</th>
+                    <th>Packing Status</th>
+                  </tr>
+                </thead>
+                <tbody id="roastery-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 4: PACKING DEPARTMENT
+             Equation: Opening + Receiving (from Roastery) - Issues/Transfers = Closing, Physical, Variance
+             ================================================================ -->
+        <div class="tab-pane" id="tab-packing">
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">📦</span>
+                <div>
+                  <h2 class="table-heading">Packing Department Inventory &amp; Dispatches</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Equation: Opening + Receiving (from Roastery) - Transfers = Closing Balance &bull; Physical &bull; Variance
+                  </div>
+                </div>
+                <span class="table-count-badge" id="packing-count-badge">0 SKUs</span>
+              </div>
+
+              <div class="table-actions">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="packing-search-input" class="search-input" placeholder="Search Packaged SKU..." />
+                </div>
+                <button class="topbar-btn primary" onclick="window.CoffeeApp.openModal('modal-packing-issue')">
+                  <span>📤</span> <span>+ Issue to Dept / Party</span>
+                </button>
+                <button class="topbar-btn" style="background:rgba(212,163,115,0.15);border-color:rgba(212,163,115,0.35);color:var(--crema-light);" onclick="window.CoffeeApp.openModal('modal-new-outlet')">
+                  <span>🏪</span> <span>+ Add Cafe Outlet</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.openModal('modal-new-department')">
+                  <span>🏢</span> <span>+ Add Future Dept</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportPackingCSV()">
+                  <span>📥</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Packing Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>SKU &amp; UOM</th>
+                    <th>Item Description</th>
+                    <th class="col-number">Opening</th>
+                    <th class="col-number">Receiving (Roastery)</th>
+                    <th class="col-number">Total Issues / Outflows</th>
+                    <th class="col-number">Closing Balance</th>
+                    <th class="col-number">Physical Count</th>
+                    <th class="col-number">Variance</th>
+                    <th style="text-align:center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="packing-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 5: RETAIL & PACKAGING MATERIALS
+             Equation: Opening + Receiving - Issues = Closing, Physical, Variance
+             ================================================================ -->
+        <div class="tab-pane" id="tab-retail">
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">🛍️</span>
+                <div>
+                  <h2 class="table-heading">Retail Merchandise &amp; Packaging Materials</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Equation: Opening + Receiving (Purchases) - Issues = Closing Balance &bull; Physical &bull; Variance
+                  </div>
+                </div>
+                <span class="table-count-badge" id="retail-count-badge">0 Items</span>
+              </div>
+
+              <div class="table-actions">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="retail-search-input" class="search-input" placeholder="Search Retail / Packaging SKU..." />
+                </div>
+                <button class="topbar-btn" onclick="window.CoffeeApp.openRetailPurchaseModal()">
+                  <span>📥</span> <span>+ Receive Purchase</span>
+                </button>
+                <button class="topbar-btn primary" onclick="window.CoffeeApp.openRetailIssueModal()">
+                  <span>📤</span> <span>+ Issue to Outlet / Web</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportRetailCSV()">
+                  <span>📥</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Retail Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>SKU &amp; UOM</th>
+                    <th>Item Name &amp; Category</th>
+                    <th class="col-number">Opening</th>
+                    <th class="col-number">Receiving (Purchases)</th>
+                    <th class="col-number">Total Issued</th>
+                    <th class="col-number">Closing Balance</th>
+                    <th class="col-number">Physical Count</th>
+                    <th class="col-number">Variance</th>
+                    <th class="col-number">Asset Value</th>
+                    <th style="text-align:center;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="retail-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 6: ITEM MASTER
+             ================================================================ -->
+        <div class="tab-pane" id="tab-itemmaster">
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">🏷️</span>
+                <div>
+                  <h2 class="table-heading">Item Master Catalog</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Master registry for Green Beans, Roasted Coffee, Finished Packs, Packaging &amp; Retail Merch
+                  </div>
+                </div>
+                <span class="table-count-badge" id="item-master-count-badge">0 SKUs</span>
+              </div>
+
+              <div class="table-actions">
+                <div class="search-box">
+                  <span class="search-icon">🔍</span>
+                  <input type="text" id="item-master-search-input" class="search-input" placeholder="Search SKU, Name..." />
+                </div>
+                <select id="item-master-category-filter" class="filter-select">
+                  <option value="ALL">All Categories</option>
+                  <option value="Green Coffee">Green Coffee</option>
+                  <option value="Roasted Coffee">Roasted Coffee</option>
+                  <option value="Packaged Coffee">Packaged Coffee</option>
+                  <option value="Packaging Material">Packaging Material</option>
+                  <option value="Retail Merchandise">Retail Merchandise</option>
+                </select>
+                <button class="topbar-btn primary" onclick="window.CoffeeApp.openAddItemModal()">
+                  <span>+</span> <span>Add Master Item</span>
+                </button>
+                <button class="topbar-btn" onclick="window.CoffeeApp.exportItemMasterCSV()">
+                  <span>📤</span> <span>Export CSV</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Item Master Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>SKU Code</th>
+                    <th>Item Description</th>
+                    <th>Category</th>
+                    <th>UOM</th>
+                    <th class="col-number">Target Loss %</th>
+                    <th class="col-number">Cost Price</th>
+                    <th class="col-number">Selling Price</th>
+                    <th class="col-number">Reorder Lvl</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="item-master-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 7: LOCATIONS & CAFE OUTLETS MASTER
+             ================================================================ -->
+        <div class="tab-pane" id="tab-departments">
+          
+          <!-- Section 1: Cafe Outlets & Branch Network -->
+          <div class="table-container-card" style="margin-bottom:1.5rem;">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.4rem;">🏪</span>
+                <div>
+                  <h2 class="table-heading">Cafe Outlets &amp; Retail Branch Network</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Active Specialty Cafes, Kiosks, and Airport Outlets receiving daily fresh roasted coffee
+                  </div>
+                </div>
+                <span class="table-count-badge" id="outlets-count-badge">0 Cafes</span>
+              </div>
+
+              <div class="table-actions">
+                <button class="topbar-btn primary" onclick="window.CoffeeApp.openModal('modal-new-outlet')">
+                  <span>🏪</span> <span>+ Add New Cafe Outlet</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Outlets Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Outlet Code</th>
+                    <th>Cafe Outlet Name &amp; Location</th>
+                    <th>Cafe Format</th>
+                    <th>Store Manager / Contact</th>
+                    <th class="col-number">Total Coffee Dispatched</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="outlets-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+          <!-- Section 2: Channels, QA & Dynamic Future Departments -->
+          <div class="table-container-card">
+            
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">🏢</span>
+                <div>
+                  <h2 class="table-heading">Channels, QA &amp; Dynamic Future Departments</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    E-Commerce D2C, B2B Wholesale, QA Sensory Lab, Wastage &amp; Future Units
+                  </div>
+                </div>
+              </div>
+
+              <div class="table-actions">
+                <button class="topbar-btn" onclick="window.CoffeeApp.openModal('modal-new-department')">
+                  <span>+</span> <span>Add Custom Department</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Departments Table -->
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Dept Code</th>
+                    <th>Department / Channel Name</th>
+                    <th>Channel Type</th>
+                    <th class="col-number">Total Issued</th>
+                    <th>System Role</th>
+                    <th style="text-align:center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="departments-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 8: AUDIT & TRANSACTIONS LEDGER
+             ================================================================ -->
+        <div class="tab-pane" id="tab-ledger">
+          <div class="table-container-card">
+            <div class="table-toolbar">
+              <div class="table-title-group">
+                <span style="font-size:1.3rem;">📜</span>
+                <div>
+                  <h2 class="table-heading">Complete Inventory Movement Ledger</h2>
+                  <div style="font-size:0.76rem;color:var(--text-muted);font-family:var(--font-mono);">
+                    Immutable chronological audit log of all purchases, roast handoffs, and department issues
+                  </div>
+                </div>
+                <span class="table-count-badge" id="ledger-count-badge">0 Logs</span>
+              </div>
+            </div>
+
+            <div class="data-table-responsive">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th>Txn ID</th>
+                    <th>Date &amp; Time</th>
+                    <th>Module</th>
+                    <th>Operation Type</th>
+                    <th>SKU</th>
+                    <th class="col-number">Quantity</th>
+                    <th>Destination / Reference</th>
+                    <th>Notes</th>
+                  </tr>
+                </thead>
+                <tbody id="ledger-table-body">
+                  <!-- Rendered by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================
+             TAB 9: IMPORT & EXPORT HUB
+             ================================================================ -->
+        <div class="tab-pane" id="tab-impexp">
+          
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;">
+            
+            <!-- Export Hub -->
+            <div class="table-container-card" style="padding:1.5rem;">
+              <h3 style="font-family:var(--font-heading);font-size:1.2rem;color:var(--crema-light);margin-bottom:0.5rem;">
+                📤 Export Data to Excel / CSV
+              </h3>
+              <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.25rem;">
+                Download instant CSV spreadsheets with formatted columns, formulas, and department breakdowns.
+              </p>
+
+              <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <button class="topbar-btn" style="justify-content:space-between;padding:0.8rem 1rem;" onclick="window.CoffeeApp.exportGreenCoffeeCSV()">
+                  <span>🌿 Export Green Coffee Inventory</span>
+                  <span style="font-size:0.75rem;color:var(--crema-primary);font-family:var(--font-mono);">.CSV</span>
+                </button>
+                <button class="topbar-btn" style="justify-content:space-between;padding:0.8rem 1rem;" onclick="window.CoffeeApp.exportRoasteryCSV()">
+                  <span>🔥 Export Roastery Batches &amp; Losses</span>
+                  <span style="font-size:0.75rem;color:var(--crema-primary);font-family:var(--font-mono);">.CSV</span>
+                </button>
+                <button class="topbar-btn" style="justify-content:space-between;padding:0.8rem 1rem;" onclick="window.CoffeeApp.exportPackingCSV()">
+                  <span>📦 Export Packing Dept &amp; Channel Issues</span>
+                  <span style="font-size:0.75rem;color:var(--crema-primary);font-family:var(--font-mono);">.CSV</span>
+                </button>
+                <button class="topbar-btn" style="justify-content:space-between;padding:0.8rem 1rem;" onclick="window.CoffeeApp.exportRetailCSV()">
+                  <span>🛍️ Export Retail &amp; Packaging Inventory</span>
+                  <span style="font-size:0.75rem;color:var(--crema-primary);font-family:var(--font-mono);">.CSV</span>
+                </button>
+                <button class="topbar-btn" style="justify-content:space-between;padding:0.8rem 1rem;" onclick="window.CoffeeApp.exportItemMasterCSV()">
+                  <span>🏷️ Export Item Master Catalog</span>
+                  <span style="font-size:0.75rem;color:var(--crema-primary);font-family:var(--font-mono);">.CSV</span>
+                </button>
+                <button class="topbar-btn primary" style="justify-content:space-between;padding:0.85rem 1rem;" onclick="window.CoffeeApp.exportDatabaseJSON()">
+                  <span>💾 Backup Complete Database (All Modules)</span>
+                  <span style="font-size:0.75rem;font-family:var(--font-mono);font-weight:700;">.JSON</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Import Hub -->
+            <div class="table-container-card" style="padding:1.5rem;">
+              <h3 style="font-family:var(--font-heading);font-size:1.2rem;color:var(--crema-light);margin-bottom:0.5rem;">
+                📥 Import Data Files
+              </h3>
+              <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:1.25rem;">
+                Bulk upload Item Master catalogs or restore complete operational database backups.
+              </p>
+
+              <div style="display:flex;flex-direction:column;gap:1.25rem;">
+                
+                <!-- Import CSV Item Master -->
+                <div style="background:var(--bg-surface);padding:1rem;border-radius:var(--radius-md);border:1px dashed var(--border-card);">
+                  <div style="font-weight:600;font-size:0.88rem;color:var(--text-primary);margin-bottom:0.25rem;">
+                    Import Item Master (CSV)
+                  </div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;">
+                    Upload a CSV file with columns: <code>SKU_Code, Item_Name, Category, UOM, Target_Roasting_Loss_Pct, Cost_Price, Selling_Price, Reorder_Level</code>
+                  </div>
+                  <input type="file" accept=".csv" class="form-control" onchange="window.CoffeeApp.handleImportItemMasterCSV(event)" />
+                </div>
+
+                <!-- Restore Full JSON Backup -->
+                <div style="background:var(--bg-surface);padding:1rem;border-radius:var(--radius-md);border:1px dashed var(--border-card);">
+                  <div style="font-weight:600;font-size:0.88rem;color:var(--text-primary);margin-bottom:0.25rem;">
+                    Restore Database Backup (JSON)
+                  </div>
+                  <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:0.75rem;">
+                    Restores all departments, roasts, lots, transactions, and physical counts from a previous JSON backup file.
+                  </div>
+                  <input type="file" accept=".json" class="form-control" onchange="window.CoffeeApp.handleImportJSON(event)" />
+                </div>
+
+                <!-- Reset to Rich Sample Data -->
+                <div style="padding-top:0.5rem;">
+                  <button class="topbar-btn" style="width:100%;justify-content:center;color:var(--amber-gold);" onclick="window.CoffeeApp.resetToDemoData()">
+                    <span>🔄</span> <span>Reload Specialty Coffee Demo Dataset</span>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+
+  </div>
+
+  <!-- ====================================================================
+       MODAL 1: PURCHASE OF GREEN COFFEE
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-green-purchase">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>📥</span> Receive Green Coffee Purchase</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-green-purchase')">&times;</button>
+      </div>
+      <form id="form-green-purchase">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Green Coffee SKU</label>
+            <select id="gp-sku" class="form-control select-green-sku" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantity Purchased (kg)</label>
+              <input type="number" step="0.1" min="0.1" id="gp-qty" class="form-control" placeholder="e.g. 600" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lot / Batch Number</label>
+              <input type="text" id="gp-lot" class="form-control" placeholder="e.g. LOT-2026-ETH-99" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Supplier / Origin Importer</label>
+              <input type="text" id="gp-supplier" class="form-control" placeholder="e.g. Attikan Estate / Coorg Planters" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Unit Cost (₹/kg)</label>
+              <input type="number" step="0.01" id="gp-cost" class="form-control" placeholder="e.g. 480.00" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-green-purchase')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Save &amp; Ingest Purchase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 2: ISSUE TO ROASTERY
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-issue-roastery">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>🔥</span> Issue Green Coffee to Roastery Unit</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-issue-roastery')">&times;</button>
+      </div>
+      <form id="form-issue-roastery">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Green Coffee SKU</label>
+            <select id="ir-sku" class="form-control select-green-sku" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Quantity to Issue (kg)</label>
+            <input type="number" step="0.1" min="0.1" id="ir-qty" class="form-control" placeholder="e.g. 30" required />
+            <span class="form-hint">This will deduct from Green Coffee Closing Balance and stage for Roasting.</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Roasting Machine / Notes</label>
+            <input type="text" id="ir-notes" class="form-control" placeholder="e.g. Scheduled for Morning Filter Roast on Giesen W15" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-issue-roastery')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Issue to Roaster</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 3: LOG ROAST BATCH (WITH ROASTING LOSS % CALCULATION)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-new-roast">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>🔥</span> Log Roastery Batch &amp; Loss %</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-new-roast')">&times;</button>
+      </div>
+      <form id="form-roast-batch">
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Green Coffee SKU (Raw In)</label>
+              <select id="rb-green-sku" class="form-control select-green-sku" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Roasted SKU Target (Out)</label>
+              <select id="rb-roasted-sku" class="form-control select-roasted-sku" required></select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Green Beans In (kg)</label>
+              <input type="number" step="0.1" min="0.1" id="rb-green-in" class="form-control" placeholder="e.g. 30.0" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Roasted Beans Output (kg)</label>
+              <input type="number" step="0.1" min="0.1" id="rb-roasted-out" class="form-control" placeholder="e.g. 25.8" required />
+            </div>
+          </div>
+
+          <!-- Live Roasting Loss Calculation Preview -->
+          <div class="calculation-preview-box">
+            <span class="calc-preview-title">Real-Time Roasting Loss:</span>
+            <span class="calc-preview-val" id="roast-calc-preview">Loss: 0.0 kg (0.0%)</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Roaster Machine ID</label>
+              <input type="text" id="rb-machine" class="form-control" placeholder="e.g. Giesen W15A / Probat UG22" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Roast Profile / Roast Degree</label>
+              <input type="text" id="rb-profile" class="form-control" placeholder="e.g. Filter Light / Medium Espresso" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Roast Notes &amp; QC Observation</label>
+            <input type="text" id="rb-notes" class="form-control" placeholder="First crack @ 8:40, Drop @ 10:20 (208C)" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-new-roast')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Complete Roast &amp; Handoff to Packing</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 4: PACKING DEPARTMENT ISSUE (OUTLETS, WEB, B2B, WASTE, GRINDER, LAB)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-packing-issue">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>📦</span> Packing Department: Issue / Dispatch</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-packing-issue')">&times;</button>
+      </div>
+      <form id="form-packing-issue">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select Packaged / Roasted SKU</label>
+            <select id="pi-sku" class="form-control select-packing-sku" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Issue Destination (Outlet, Web, B2B, Waste, Grinder, Lab)</label>
+            <select id="pi-dept" class="form-control select-department" required></select>
+            <span class="form-hint">Supports all outlets, sales channels, waste, calibration losses &amp; custom future departments.</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantity to Issue</label>
+              <input type="number" step="0.1" min="0.1" id="pi-qty" class="form-control" placeholder="e.g. 15" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Invoice / Dispatch Slip #</label>
+              <input type="text" id="pi-slip" class="form-control" placeholder="e.g. DISP-2026-088" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Transaction Notes / Party</label>
+            <input type="text" id="pi-notes" class="form-control" placeholder="e.g. Weekly stock replenishment for Uptown cafe" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-packing-issue')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Record Dispatch / Issue</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 5: RETAIL RECEIVE PURCHASE
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-retail-purchase">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>📥</span> Receive Retail / Packaging Material Purchase</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-retail-purchase')">&times;</button>
+      </div>
+      <form id="form-retail-purchase">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Retail / Packaging SKU</label>
+            <select id="rp-sku" class="form-control select-retail-sku" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantity Received</label>
+              <input type="number" step="1" min="1" id="rp-qty" class="form-control" placeholder="e.g. 500" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Supplier / Factory</label>
+              <input type="text" id="rp-supplier" class="form-control" placeholder="e.g. Hario Japan / Pouch Direct" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-retail-purchase')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Save &amp; Ingest</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 6: RETAIL ISSUE / DISPATCH
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-retail-issue">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>📤</span> Issue Retail Merchandise / Packaging Material</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-retail-issue')">&times;</button>
+      </div>
+      <form id="form-retail-issue">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Select SKU</label>
+            <select id="ri-sku" class="form-control select-retail-sku" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Destination (Outlet / Website / B2B / Wastage)</label>
+            <select id="ri-dept" class="form-control select-department" required></select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input type="number" step="1" min="1" id="ri-qty" class="form-control" placeholder="e.g. 50" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notes</label>
+              <input type="text" id="ri-notes" class="form-control" placeholder="e.g. Restocked shelf display" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-retail-issue')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Issue Stock</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 7: ADD DYNAMIC FUTURE DEPARTMENT (User specified requirement!)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-new-department">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>🏢</span> Add Dynamic Department for Future</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-new-department')">&times;</button>
+      </div>
+      <form id="form-new-dept">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Department / Location Name</label>
+            <input type="text" id="dept-new-name" class="form-control" placeholder="e.g. New Suburb Outlet / Cold Brew Production" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Department Code</label>
+              <input type="text" id="dept-new-code" class="form-control" placeholder="e.g. OUT-SUBURB / CB-UNIT" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Department Category / Channel Type</label>
+              <select id="dept-new-type" class="form-control">
+                <option value="Outlet">Outlet / Physical Cafe</option>
+                <option value="Web Sales">Online / D2C Sales</option>
+                <option value="B2B Sales">B2B / Wholesale Party</option>
+                <option value="Quality &amp; Lab">Quality / Lab Testing</option>
+                <option value="Wastage &amp; Loss">Loss / Spillage</option>
+                <option value="Special Operations">Special Operations / Events</option>
+                <option value="General">General Department</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);background:rgba(212,163,115,0.06);padding:0.75rem;border-radius:var(--radius-sm);">
+            💡 <strong>Dynamic Expansion</strong>: Once added, this new department immediately becomes selectable across the Packing Department issues, Retail dispatches, and summary analytics.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-new-department')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Register Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 7B: ADD NEW CAFE OUTLET / BRANCH
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-new-outlet">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title"><span>🏪</span> Add New Cafe Outlet / Branch</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-new-outlet')">&times;</button>
+      </div>
+      <form id="form-new-outlet">
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label">Cafe Outlet Name</label>
+            <input type="text" id="outlet-new-name" class="form-control" placeholder="e.g. Koramangala 4th Block Cafe / Church Street Roastery" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">City / Region</label>
+              <input type="text" id="outlet-new-city" class="form-control" placeholder="e.g. Bengaluru, Mumbai, Delhi NCR" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Outlet Code</label>
+              <input type="text" id="outlet-new-code" class="form-control" placeholder="e.g. BLR-KOR, BOM-JUHU, DEL-CP" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cafe Format</label>
+              <select id="outlet-new-format" class="form-control">
+                <option value="Dine-in Cafe &amp; Roastery">Dine-in Cafe &amp; Roastery</option>
+                <option value="Espresso Bar / Kiosk">Espresso Bar / Kiosk</option>
+                <option value="Airport / Transit Hub">Airport / Transit Hub</option>
+                <option value="Corporate / Tech Park Cafe">Corporate / Tech Park Cafe</option>
+                <option value="Pop-up / Event Bar">Pop-up / Event Bar</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Store Manager / Contact</label>
+              <input type="text" id="outlet-new-manager" class="form-control" placeholder="e.g. Rahul Sharma (+91 98765 43210)" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Address / Landmark</label>
+            <input type="text" id="outlet-new-address" class="form-control" placeholder="e.g. #42, 100ft Road, 4th Block, Koramangala" />
+          </div>
+          <div style="font-size:0.75rem;color:var(--text-muted);background:rgba(212,163,115,0.06);padding:0.75rem;border-radius:var(--radius-sm);">
+            💡 <strong>Automatic Integration</strong>: Adding this outlet will immediately add it to the <strong>Packing Department Issue</strong> list, <strong>Retail Material</strong> dispatches, and the <strong>Department Issues Breakdown</strong> report.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-new-outlet')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Register Cafe Outlet</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL 8: ADD / EDIT ITEM MASTER SKU
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-item-master">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title" id="im-modal-title"><span>🏷️</span> Add Master SKU Item</div>
+        <button class="modal-close-btn" onclick="window.CoffeeApp.closeModal('modal-item-master')">&times;</button>
+      </div>
+      <form id="form-item-master">
+        <input type="hidden" id="im-edit-id" />
+        <div class="modal-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">SKU Code</label>
+              <input type="text" id="im-sku" class="form-control" placeholder="e.g. GC-KEN-AA / PKG-ESP-500G" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="im-category" class="form-control" required>
+                <option value="Green Coffee">Green Coffee</option>
+                <option value="Roasted Coffee">Roasted Coffee</option>
+                <option value="Packaged Coffee">Packaged Coffee</option>
+                <option value="Packaging Material">Packaging Material</option>
+                <option value="Retail Merchandise">Retail Merchandise</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Item Full Description</label>
+            <input type="text" id="im-name" class="form-control" placeholder="e.g. Kenya Nyeri Hill Peaberry Washed" required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Unit of Measure (UOM)</label>
+              <input type="text" id="im-uom" class="form-control" placeholder="kg, units, packs, boxes" value="kg" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Standard Roasting Loss % (if Coffee)</label>
+              <input type="number" step="0.1" id="im-loss" class="form-control" placeholder="e.g. 15.0" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cost Price (₹)</label>
+              <input type="number" step="0.01" id="im-cost" class="form-control" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Selling Price (₹)</label>
+              <input type="number" step="0.01" id="im-price" class="form-control" placeholder="0.00" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Reorder Alert Level</label>
+              <input type="number" step="1" id="im-reorder" class="form-control" placeholder="e.g. 50" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Origin / Variety / Specifications</label>
+              <input type="text" id="im-origin" class="form-control" placeholder="e.g. Nyeri, SL28/SL34, 1800 MASL" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="topbar-btn" onclick="window.CoffeeApp.closeModal('modal-item-master')">Cancel</button>
+          <button type="submit" class="topbar-btn primary">Save Item</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Node -->
+  <div id="toastNotification"></div>
+
+  <!-- Javascript Core Engine -->
+  <script src="js/coffee-tracker.js"></script>
+</body>
+</html>
